@@ -1,0 +1,373 @@
+En el SGBDR deOracle se han utilizado las siguientes sentencias de SQL para crear las
+ tablas de departamentos (dept) y empleados (emp).
+
+------------------------------------MODELO------------------------------------
+
+ create table dept (
+ deptno number(2,0) ,
+ dname varchar2(14) ,
+ loc varchar2(13) ,
+ contraint pk_dept primary key (deptno)
+ )
+ create table emp (
+ empnonumber(4,0) ,
+ ename varchar2(10) ,
+ job varchar2(9) ,
+ mgr number(4,0) ,
+ hiredate date,
+ sal number(7,2) ,
+ commnumber(7,2) ,
+ deptno number(2,0) ,
+ constraint pk_emp primary key (empno) ,
+ constraint fk_deptno foreign key (deptno) references dept (deptno)
+ )
+------------------------------------------------------------------------------
+ 1. Indique los pasos a seguir para instalar el SGBDR de MariaDB en Oracle LinuxPaso 1: Actualizar el
+ sistema
+ Primero, VERIFICAR CONEXION EN ORACLE LINUX y actualizar tu sistema para asegurarte de que todos
+ los paquetes estén al día.
+------------------------------------------------------------------------------
+ sudo yumupdate-y
+------------------------------------------------------------------------------
+ Paso 2: Instalar el repositorio de MariaDB
+ MariaDB proporciona repositorios específicos para diferentes versiones de Linux. Agrega el repositorio
+ correspondiente a tu versión de Oracle Linux.
+ Para Oracle Linux 8 (en mi caso):
+------------------------------------------------------------------------------
+ sudo tee /etc/yum.repos.d/MariaDB.repo <<EOF
+ # MariaDB 10.5 CentOS repository list- created 2020-06-15 08:05 UTC
+ # http://downloads.mariadb.org/mariadb/repositories/
+ [mariadb]
+ name=MariaDB
+ baseurl = http://yum.mariadb.org/10.5/centos8-amd64
+ gpgkey=https://yum.mariadb.org/RPM-GPG-KEY-MariaDB
+ gpgcheck=1
+ EOF
+------------------------------------------------------------------------------
+ Después de configurar el repositorio, limpia la caché de yum para asegurarte de que se tomen en
+ cuenta las nuevas configuraciones del repositorio.
+------------------------------------------------------------------------------
+ sudo yumclean all
+ sudo yummakecache
+------------------------------------------------------------------------------
+ Paso 3: Instalar MariaDB
+ Instala MariaDB usando el siguiente comando:
+------------------------------------------------------------------------------
+ sudo yuminstall MariaDB-server MariaDB-client-y
+------------------------------------------------------------------------------
+ Paso 4: Iniciar y habilitar el servicio de MariaDB
+ Después de la instalación, inicia el servicio de MariaDB y habilítalo para que se inicie automáticamente al
+ arrancar el sistema.
+------------------------------------------------------------------------------
+ sudo systemctl start mariadb
+ sudo systemctl enable mariadb
+------------------------------------------------------------------------------
+ Paso 5: Asegurar la instalación de MariaDB
+ Ejecuta el script de seguridad de MariaDB para eliminar configuraciones inseguras y configurar el acceso
+ a la base de datos.
+------------------------------------------------------------------------------
+ sudo mysql_secure_installation
+------------------------------------------------------------------------------
+ Sigue las instrucciones en pantalla para configurar la contraseña de root y eliminar usuarios anónimos, la
+ base de datos de prueba y deshabilitar el acceso remoto de root si es necesario.
+ Paso 6: Verificar la instalación
+ Para verificar que MariaDB se haya instalado y esté funcionando correctamente, puedes iniciar sesión en
+ el servidor de MariaDB.
+------------------------------------------------------------------------------
+ mysql-u root-p
+--------------------------------VISTA TERMINAL--------------------------------
+
+Thanks for using MariaDB!
+[root@localhost mauro]# mysql -u root -p
+Enter password:
+Welcome to the MariaDB monitor. Commands end with; or \g.
+Your MariaDB connection id is 26
+Server version: 10.3.39-MariaDB MariaDB Server
+Copyright (c) 2000, 2018, Oracle, MariaDB Corporation Ab and others.
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+MariaDB [(none)]>
+------------------------------------------------------------------------------
+2. Haga los cambios necesarios y cree un script que se pueda ejecutar en
+MariaDB. El script debe crear la base de datos "Examen" y crear en ella todos
+los objetos.
+PRIMERO CREAMOS UN FICHERO (nano ficha.sql) donde guardaremos el script en el home de nuestro usuario para luego ejecutarlo indicandole donde se encuentra:
+
+--------------------------------VISTA TERMINAL--------------------------------
+
+Archivo Editar Ver Buscar Terminal Ayuda
+GNU nano 2.9.8
+CREATE DATABASE Examen;
+USE Examen;
+CREATE TABLE dept (
+deptno INT(2) NOT NULL,
+dname VARCHAR(14), loc VARCHAR(13), PRIMARY KEY (deptno)
+);
+CREATE TABLE emp (
+empno INT (4) NOT NULL,
+ename VARCHAR(10), job VARCHAR(9),
+mgr INT(4),
+hiredate DATE,
+sal DECIMAL (7,2),
+comm DECIMAL(7,2),
+deptno INT(2),
+PRIMARY KEY (empno),
+root@localhost:/home/mauro
+FOREIGN KEY (deptno) REFERENCES dept (deptno)
+;
+ficha.sql
+------------------------------------------------------------------------------
+GUARDAMOS Y SALIMOS DE NANO
+------------------------------------------------------------------------------
+3. Haga un nuevo script para añadir 2 departamentos nuevos con 1 empleado en
+cada uno de ellos. Debe insertar solo los datos obligatorios de cada tabla.
+
+--------------------------------VISTA TERMINAL--------------------------------
+
+Actividades Terminal
+Archivo Editar Ver Buscar Terminal Ayuda
+GNU nano 2.9.8
+USE Examen;
+8 de jul 03:32 root@localhost:/home/mauro
+ficha insert.sql
+INSERT INTO dept (deptno, dname, loc) VALUES (1, 'HR', 'Barcelona'); INSERT INTO dept (deptno, dname, loc) VALUES (2, 'IT', 'Madrid'); INSERT INTO emp (empno, ename, deptno) VALUES (1001, 'Roberto', 1); INSERT INTO emp (empno, ename, deptno) VALUES (1002, 'Mauro', 2);
+Modificado
+------------------------------------------------------------------------------
+Realizamos los mismos pasos anteriores para crear un script que pueda ejecutarse luego, en ellos seleccionamos la base de Datos Examen que utilizaremos e insertamos los valores dentro de las correspondientes tablas como se indica en la consigna.
+------------------------------------------------------------------------------
+GUARDAMOS Y SALIMOS DE NANO
+------------------------------------------------------------------------------
+4. Indique cómo se podría ejecutar el script en MariaDB y ejecutelo
+Para ejecutar los scripts creados anteriormente debo enviarlos a MariaDb a traves de estos comandos que enseño a continuacion. TENER EN CUENTA QUE TAMBIEN SE PUEDE UTILIZAR source (ruta del archivo.sql) tanto fuera como dentro de MySQL.
+------------------------------------------------------------------------------
+[root@localhost mauro]# mysql -u root -p < ficha.sql
+Enter password:
+[root@localhost mauro]# mysql -u root -p < ficha_insert.sql
+------------------------------------------------------------------------------
+De esta manera ingreso como "root" o con mi usuario si lo tuviera en la base de datos selecciono la base de datos que he Creado de nombre "Examen" y en ella se veran mis tablas creadas en los scripts que he ejecutado.
+
+--------------------------------VISTA TERMINAL--------------------------------
+
+[root@localhost mauro]# mysql -u root -p < ficha.sql
+Enter password:
+[root@localhost mauro]# mysql -u root -p < ficha_insert.sql
+Enter password:
+[root@localhost mauro]# mysql -u root -p
+Enter password:
+Welcome to the MariaDB monitor. Commands end with ; or \g.
+Your MariaDB connection id is 33
+Server version: 10.3.39-MariaDB MariaDB Server
+Copyright (c) 2000, 2018, Oracle, MariaDB Corporation Ab and others.
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+MariaDB [(none)]> show databases;
++-------------------+
+|Database	    |
++-------------------+
+|Examen		    |
+|information_schema |
+|MySQL		    |
+|performance_schema |
++-------------------+
+4 rows in set (0,000 sec)
+MariaDB [(none)]> use Examen;
+Reading table information for completion of table and column names You can turn off this feature to get a quicker startup with -A
+Database changed
+MariaDB [Examen]> show tables;
++-----------------+
+|Tables_in_Examen |
++-----------------+
+|dept 		  |
+|emp		  |
++-----------------+
+2 rows in set (0,000 sec)
+MariaDB [Examen]>
+
+--------------------------------VISTA TERMINAL--------------------------------
+
+2 rows in set (0,000 sec)
+MariaDB [Examen]> select * from dept;
++-----------------------+
+|deptno | dname | loc   | 
+----------------------- |
+|1      | HR |Barcelona |
+|2      | IT | Madrid   |
++-----------------------+
+2 rows in set (0,000 sec)
+MariaDB [Examen]> select * from emp;
++----------------------------------------------------------------+
+|empno | ename   | job  | mgr  | hiredate | sal  | comm | deptno |
++----------------------------------------------------------------+
+|1001  | Roberto | NULL | NULL | NULL     | NULL | NULL | 1      | 
+|1002  | Mauro   | NULL | NULL | NULL     | NULL | NULL | 2      |
++----------------------------------------------------------------+
+2 rows in set (0,000 sec)
+MariaDB [Examen]>
+------------------------------------------------------------------------------
+Ejecutando esos comandos puedo comprobar que existen los datos agregados con sus valores en cada tabla seleccionada a traves de la consulta.
+------------------------------------------------------------------------------
+5. Indique cómo se consulta el catálogo de MariaDB para obtener el nombre de
+todas las tablas que hay en la BBDD
+Paso 1: Iniciar sesión en MariaDB
+Primero, inicia sesión en MariaDB como el usuario root ya que con este usuario puedes otorgar privilegios:
+------------------------------------------------------------------------------
+mysql -u root -p
+------------------------------------------------------------------------------
+Te pedirá la contraseña del usuario root. Ingresa la contraseña para continuar.
+Paso 2: Crear el Usuario
+Crea el usuario mauro2 con la contraseña Maurok92:
+------------------------------------------------------------------------------
+CREATE USER 'mauro2'@'localhost' IDENTIFIED BY 'Maurok92';
+------------------------------------------------------------------------------
+Paso 3: Otorgar Privilegios
+Otorga privilegios de selección en la base de datos Examen al usuario mauro2:
+------------------------------------------------------------------------------
+GRANT SELECT ON Examen.* TO 'mauro2'@'localhost';
+------------------------------------------------------------------------------
+Paso 4: Aplicar los Cambios
+
+Aplica los cambios utilizando el comando FLUSH PRIVILEGES:
+------------------------------------------------------------------------------
+ FLUSH PRIVILEGES;
+------------------------------------------------------------------------------
+ Paso 5: Verificar los Privilegios
+ Verifica que los privilegios se hayan otorgado correctamente:
+------------------------------------------------------------------------------
+ SHOWGRANTSFOR'mauro2'@'localhost';
+------------------------------------------------------------------------------
+ Selecciona la base de datos Examen (este paso es opcional, ya que no afecta la consulta).
+ Una vez que ingrese con mi usuario consultare el catálogo de MariaDB, tener en cuenta que la base de
+ datos la cree anteriormente en el root por tanto ingresare con root pero teniendo privilegios y
+ pudiendo ingresar con el nuevo usuario podria consultar tambien.
+ Inicio sesion:
+------------------------------------------------------------------------------
+ mysql-u root-p
+------------------------------------------------------------------------------
+ USE Examen;
+------------------------------------------------------------------------------
+ Consultar el Catálogo para Obtener los Nombres de las Tablas
+ Ejecuta la siguiente consulta para obtener el nombre de todas las tablas en la base de datos Examen:
+------------------------------------------------------------------------------
+ SELECT table_name
+ FROMinformation_schema.tables
+ WHEREtable_schema = 'Examen';
+------------------------------------------------------------------------------
+ Explicación de la Consulta
+ information_schema.tables: Esta es la tabla que contiene información sobre todas las tablas de todas las
+ bases de datos gestionadas por MariaDB.
+ table_name: Es la columna que contiene los nombres de las tablas.
+ table_schema: Es la columna que contiene el nombre de la base de datos a la que pertenecen las tablas.
+ WHEREtable_schema = 'Examen': Esta cláusula filtra los resultados para que solo se muestren las tablas
+ pertenecientes a la base de datos Examen.-Tambien podria poner "show tables;" y me mostraria la misma información.
+
+
+--------------------------------VISTA TERMINAL--------------------------------
+
+MariaDB [(none) ]> SELECT table_name 
+	-> FROM information schema.tables 
+	-> WHERE table schema = 'Examen';
++-----------+
+|table_name |
++-----------+
+|dept 	    |
+|emp	    |
++-----------+
+2 rows in set (0,002 sec)
+MariaDB [(none)]>|
+------------------------------------------------------------------------------
+
+6. Cree un nuevo usuario que pueda consultar las tablas que hay en la base de
+datos "Examen"
+Si bien en el paso anterior ya me he creado el nuevo usuario y le he otorgado permisos para consultar la base de datos "Examen" repito los pasos nuevamente:
+Paso 1: Iniciar sesión en MariaDB
+Primero, inicia sesión en MariaDB como el usuario root ya que con este usuario puedes otorgar privilegios:
+------------------------------------------------------------------------------
+mysql -u root -p
+------------------------------------------------------------------------------
+Te pedirá la contraseña del usuario root. Ingresa la contraseña para continuar.
+Paso 2: Crear el Usuario
+Crea el usuario mauro2 con la contraseña Maurok92:
+------------------------------------------------------------------------------
+CREATE USER 'mauro2'@'localhost' IDENTIFIED BY 'Maurok92';
+------------------------------------------------------------------------------
+Paso 3: Otorgar Privilegios
+Otorga privilegios de selección en la base de datos Examen al usuario mauro2:
+------------------------------------------------------------------------------
+GRANT SELECT ON Examen.* TO 'mauro2'@'localhost';
+------------------------------------------------------------------------------
+Paso 4: Aplicar los Cambios
+Aplica los cambios utilizando el comando FLUSH PRIVILEGES:
+------------------------------------------------------------------------------
+FLUSH PRIVILEGES;
+------------------------------------------------------------------------------
+
+Paso 5: Verificar los Privilegios
+ Verifica que los privilegios se hayan otorgado correctamente:
+------------------------------------------------------------------------------
+ SHOWGRANTSFOR'mauro2'@'localhost';
+------------------------------------------------------------------------------
+ Selecciona la base de datos Examen (este paso es opcional, ya que no afecta la consulta).
+ 7. Indique como se podria ejecutar el script en SQLite
+ En micaso meinstalare SQlite en mi Oracle Linux, creare la bd ahi y la ejecutare.
+ Paso 1: Actualizar el Sistema
+ Primero, actualiza tu sistema para asegurarte de que todos los paquetes estén al día.
+------------------------------------------------------------------------------
+ sudo yumupdate-y
+------------------------------------------------------------------------------
+ Paso 2: Instalar SQLite3
+ Instala SQLite3 usando el gestor de paquetes yum.
+------------------------------------------------------------------------------
+ sudo yuminstall sqlite-y
+------------------------------------------------------------------------------
+ Paso 3: Verificar la Instalación
+ Después de la instalación, verifica que SQLite3 esté instalado correctamente y muestra la versión
+ instalada.
+------------------------------------------------------------------------------
+ sqlite3--versión
+------------------------------------------------------------------------------
+ Luego ingresare a sqlite3
+ Ejecución en SQLite
+ Asegúrate de estar en el directorio donde tienes Examen.db, ficha.sql y ficha_insert.sql.
+ Ejecuta el siguiente comando desde tu terminal para aplicar el script SQL en SQLite:
+------------------------------------------------------------------------------
+ sqlite3 Examen.db < ficha.sql
+------------------------------------------------------------------------------
+ "TENER EN CUENTALASINTAXIS DE SQLITE PARA MODIFICAR LOS FICHEROS SI ES NECESARIO O CREAR
+ NUEVOSFICHEROS QUECONTENGANELSCRIPTCONLASINTAXIS CORRECTA"
+ Esto creará las tablas dept y emp si no existen.
+ Luego, ejecuta el siguiente comando para insertar los datos en las tablas:
+------------------------------------------------------------------------------
+ sqlite3 Examen.db < ficha_insert.sql
+------------------------------------------------------------------------------
+Esto insertará los datos en las tablas dept y emp.
+Verifica que los datos se hayan insertado correctamente ejecutando consultas SQL dentro de SQLite:
+------------------------------------------------------------------------------
+sqlite3 Examen.db (CREARA LA BBBDD SI NO EXISTE)
+sqlite> .tables
+dept emp
+sqlite>
+------------------------------------------------------------------------------
+8. Indique como se podria ejecutar el script en Oracle
+En mi caso ejecutare Oracle desde la cmd con mi usuario creado para ello y ejecutando directamente el comando:
+
+------------------------------------------------------------------------------
+C:\Users\Mañanas>sqlplus mauro/Maurok92@192.168.11.120:1521/XEPDB1 @C:\Oracle\ficha.sql
+------------------------------------------------------------------------------
+Este comando "@" me guia a la ubicacion donde tengo mi fichero.sql que contiene los scripts necesarios para crear mis tablas.
+
+--------------------------------VISTA TERMINAL--------------------------------
+
+CMD - Símbolo del sistema - sqlplus
+C:\Users\Mañanas>sqlplus mauro/Maurok92@192.168.11.120:1521/XEPDB1 @C:\Oracle\ficha.sql ---(TAMBIEN SE PUEDE INGRESAR Y DENTRO PONER @C:...RUTA)---
+SQL*Plus: Release 21.0.0.0.0 Production on Lun Jul 8 10:30:31 2024 Version 21.3.0.0.0
+Copyright (c) 1982, 2021, Oracle. All rights reserved.
+Hora de rltima Conexion Correcta: Lun Jul 08 2024 10:29:48 +02:00
+Conectado a:
+Oracle Database 21c Express Edition Release 21.0.0.0.0 Production Version 21.3.0.0.0
+Tabla creada.
+Tabla creada.
+1 fila creada.
+1 fila creada.
+1 fila creada.
+1 fila creada.
+------------------------------------------------------------------------------
+EN MI CASO PUSE TODO EN UN SOLO SCRIPT
+------------------------------------------------------------------------------
